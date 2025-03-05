@@ -150,15 +150,16 @@ class DelegateSafeBase(BrownieSafeBase):
         return None
 
     @custom_sentry_trace
-    def sign_transaction(self, safe_tx: SafeTx, signer=None) -> SafeTx:
+    def sign_transaction(self, safe_tx: SafeTx, signer=None) -> tuple[SafeTx, LocalAccount]:
+        signer = self.get_signer(signer)
         if not self.is_ci:
-            return super().sign_transaction(safe_tx, signer)
+            return super().sign_transaction(safe_tx, signer), signer
 
         if not self.is_send:
             print("CI dry-run enabled, set send to true to run to completion")
             exit(0)
         
-        return super().sign_transaction(safe_tx, signer)
+        return super().sign_transaction(safe_tx, signer), signer
 
 class DelegateSafeV111(DelegateSafeBase, SafeV111):
     pass
